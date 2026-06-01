@@ -1,35 +1,38 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$BASH_SOURCE")" && pwd)"
-WAGGLE_SRC="$SCRIPT_DIR/../../../../waggle.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DANCERS_DIR="$SCRIPT_DIR/../../../../dancers"
 
-if [ ! -f "$WAGGLE_SRC" ]; then
-  echo "ERROR: waggle.sh not found at $WAGGLE_SRC" >&2
+DANCER="${1:-waggle}"
+DANCER_SRC="$DANCERS_DIR/$DANCER.sh"
+
+if [ ! -f "$DANCER_SRC" ]; then
+  echo "ERROR: dancer '$DANCER' not found" >&2
   exit 1
 fi
 
-case "$1" in
+case "${2:-}" in
   "")
     HOOKS_DIR="$HOME/.claude/hooks"
     SETTINGS_FILE="$HOME/.claude/settings.json"
-    HOOK_CMD="bash $HOME/.claude/hooks/waggle.sh"
+    HOOK_CMD="bash $HOME/.claude/hooks/$DANCER.sh"
     ;;
   *)
-    TARGET="${1/#\~/$HOME}"
-    TARGET="$(cd "$TARGET" 2>/dev/null && pwd)" || { echo "ERROR: directory not found: $1" >&2; exit 1; }
+    TARGET="${2/#\~/$HOME}"
+    TARGET="$(cd "$TARGET" 2>/dev/null && pwd)" || { echo "ERROR: directory not found: $2" >&2; exit 1; }
     HOOKS_DIR="$TARGET/.claude/hooks"
     SETTINGS_FILE="$TARGET/.claude/settings.json"
-    HOOK_CMD="bash .claude/hooks/waggle.sh"
+    HOOK_CMD="bash .claude/hooks/$DANCER.sh"
     ;;
 esac
 
 mkdir -p "$HOOKS_DIR"
-cp "$WAGGLE_SRC" "$HOOKS_DIR/waggle.sh"
-chmod +x "$HOOKS_DIR/waggle.sh"
-echo "installed: $HOOKS_DIR/waggle.sh"
+cp "$DANCER_SRC" "$HOOKS_DIR/$DANCER.sh"
+chmod +x "$HOOKS_DIR/$DANCER.sh"
+echo "installed: $HOOKS_DIR/$DANCER.sh"
 
-if grep -q "waggle.sh" "$SETTINGS_FILE" 2>/dev/null; then
+if grep -q "$DANCER\\.sh" "$SETTINGS_FILE" 2>/dev/null; then
   echo "already configured: $SETTINGS_FILE (skipped)"
   exit 0
 fi

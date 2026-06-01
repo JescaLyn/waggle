@@ -1,14 +1,14 @@
 ---
 name: uninstall-waggle
-description: Remove the Waggle UserPromptSubmit animation hook. No argument removes it globally; pass a project path to remove it from there instead.
-argument-hint: [<project-path>]
+description: Remove a dancer hook. First arg is dancer name (default: waggle); second arg is project path (default: global).
+argument-hint: [<dancer>] [<project-path>]
 ---
 
-Uninstall waggle. Arguments: `$ARGUMENTS`
+Remove a dancer hook. Arguments: `$ARGUMENTS`
 
 Run:
 ```bash
-bash ".claude/skills/uninstall-waggle/scripts/uninstall.sh" "$ARGUMENTS"
+bash ".claude/skills/uninstall-waggle/scripts/uninstall.sh" $ARGUMENTS
 ```
 
 Report the script output verbatim. If it exits non-zero, show the error and stop.
