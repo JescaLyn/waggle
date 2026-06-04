@@ -1,8 +1,11 @@
-#!/bin/bash
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DANCERS_DIR="$SCRIPT_DIR/../../../../dancers"
+#!/usr/bin/env bash
+# description: Preview a dancer animation. No argument lists available dancers.
+# usage: /demo [<dancer-name>]
 
-if [ -z "$1" ]; then
+PROJ="${CLAUDE_PROJECT_DIR:-.}"
+DANCERS_DIR="$PROJ/dancers"
+
+if [ -z "${1:-}" ]; then
   echo "Available dancers:"
   for f in "$DANCERS_DIR"/*.sh; do
     [ -f "$f" ] && echo "  $(basename "$f" .sh)"
@@ -20,4 +23,6 @@ if [ ! -f "$DANCER_SCRIPT" ]; then
   exit 1
 fi
 
+echo "Watch the terminal input line..."
 bash "$DANCER_SCRIPT"
+echo "Done."
