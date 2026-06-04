@@ -13,10 +13,10 @@ done
 cleanup() { printf '\r\033[K' > "$TERM_DEV" 2>/dev/null; }
 trap cleanup EXIT
 
-frames=('><(((°>          ' '  ><(((°>        ' '    ><(((°>      ' '      ><(((°>    ' '        ><(((°>  ' '          ><(((°>' '          <°)))><' '        <°)))><  ' '      <°)))><    ' '    <°)))><      ' '  <°)))><        ' '<°)))><          ')
+frames=('┌[ □_□ ]┐' '└[ □_□ ]┘' '┌[ □_□ ]┘' '└[ □_□ ]┘' '└[ □_□ ]┐' '└[ □_□ ]┘')
 for _ in 1 2; do
   for frame in "${frames[@]}"; do
     printf '\r%s\033[K' "$frame" > "$TERM_DEV"
-    sleep 0.45
+    sleep 0.75
   done
 done

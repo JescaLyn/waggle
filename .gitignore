@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# iCloud sync temps (.!<pid>!<filename>)
+.!*
