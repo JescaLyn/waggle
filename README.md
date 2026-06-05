@@ -124,4 +124,4 @@ For project-level install (`.claude/settings.local.json` to keep it personal, or
 
 - If your `settings.json` already has a `UserPromptSubmit` section, add the waggle entry to the existing hooks array rather than creating a second `UserPromptSubmit` key.
 - Waggle detects headless environments (CI, background agents, no TTY) and exits immediately — safe to install globally.
-- Each animation runs for up to 9 seconds then clears itself. If Claude responds sooner, the hook is killed and the cleanup trap clears the terminal.
+- The animation loops until Claude responds or the 10s hook timeout fires. The cleanup trap clears the terminal either way.

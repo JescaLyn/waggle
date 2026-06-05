@@ -28,10 +28,10 @@ else
 fi
 
 source "$dancer_file"
-cycles="${cycles:-2}"
 sleep_dur="${sleep_dur:-0.75}"
+[ "${#frames[@]}" -eq 0 ] && exit 0
 
-for (( i=0; i<cycles; i++ )); do
+while true; do
   for frame in "${frames[@]}"; do
     printf '\r%s\033[K' "$frame" > "$TERM_DEV"
     sleep "$sleep_dur"

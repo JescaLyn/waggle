@@ -10,7 +10,7 @@ It exits immediately with code 0 in headless environments (no TTY, non-writable 
 
 ## Timing
 
-Each dancer defines its own `frames`, `cycles`, and `sleep_dur`. The default waggle dancer runs 6 frames × 2 cycles × 0.75s = 9 seconds — one second under Claude Code's default 10s hook timeout. All dancers must stay under 9 seconds total. If the timeout fires anyway, the trap ensures the terminal still clears cleanly.
+Each dancer defines its own `frames` and `sleep_dur`. The dispatcher loops forever — the animation runs until Claude responds (hook receives SIGTERM) or the 10s hook timeout fires. Either way, the `trap cleanup EXIT` clears the terminal.
 
 ## Adding waggle to a project
 
