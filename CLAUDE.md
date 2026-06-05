@@ -10,12 +10,15 @@ It exits immediately with code 0 in headless environments (no TTY, non-writable 
 
 ## Timing
 
-6 frames × 2 cycles × 0.75s = 9 seconds total. One second under Claude Code's default 10s hook timeout. If the timeout fires anyway, the trap ensures the terminal still clears cleanly.
+Each dancer defines its own `frames`, `cycles`, and `sleep_dur`. The default waggle dancer runs 6 frames × 2 cycles × 0.75s = 9 seconds — one second under Claude Code's default 10s hook timeout. All dancers must stay under 9 seconds total. If the timeout fires anyway, the trap ensures the terminal still clears cleanly.
 
 ## Adding waggle to a project
 
-1. Copy `waggle.sh` to `.claude/hooks/waggle.sh` in the target repo
-2. Add a `UserPromptSubmit` entry to `.claude/settings.json` or `.claude/settings.local.json`:
+Use `/install-waggle [<dancer>] [<project-path>]` from within this project in Claude Code. For manual install:
+
+1. Copy `lib/dispatcher.sh` to `.claude/hooks/waggle.sh` in the target repo
+2. Create `.claude/hooks/waggle-dancers/` and copy one or more dancer scripts from `dancers/` into it
+3. Add a `UserPromptSubmit` entry to `.claude/settings.json` or `.claude/settings.local.json`:
 
 ```json
 {
@@ -35,15 +38,15 @@ It exits immediately with code 0 in headless environments (no TTY, non-writable 
 }
 ```
 
-For global install, copy to `~/.claude/hooks/waggle.sh` and use that path in `~/.claude/settings.json`.
+For global install, copy to `~/.claude/hooks/waggle.sh`, create `~/.claude/hooks/waggle-dancers/`, and use that path in `~/.claude/settings.json`.
 
-## Animation sequence
+## Animation sequence (waggle dancer)
 
 ```
-  (> ^.^)>    arms right
-  <( ^.^ )>   arms out
-  <(^.^ <)    arms left
-  <(     )>   arms out, blank
-  (> ^.^)>    arms right
-  <(^.^ <)    arms left
+  (> ^.^)>   arms right
+ <( ^.^ )>   arms out
+ <(^.^ <)    arms left
+ <(     )>   arms out, blank
+  (> ^.^)>   arms right
+ <(^.^ <)    arms left
 ```

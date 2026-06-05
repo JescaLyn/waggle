@@ -13,9 +13,9 @@ if [ -z "${1:-}" ]; then
   exit 0
 fi
 
-DANCER_SCRIPT="$DANCERS_DIR/$1.sh"
-if [ ! -f "$DANCER_SCRIPT" ]; then
-  echo "ERROR: dancer '$1' not found" >&2
+DANCER="$1"
+if [ ! -f "$DANCERS_DIR/$DANCER.sh" ]; then
+  echo "ERROR: dancer '$DANCER' not found" >&2
   echo "Available dancers:"
   for f in "$DANCERS_DIR"/*.sh; do
     [ -f "$f" ] && echo "  $(basename "$f" .sh)"
@@ -24,5 +24,5 @@ if [ ! -f "$DANCER_SCRIPT" ]; then
 fi
 
 echo "Watch the terminal input line..."
-bash "$DANCER_SCRIPT"
+WAGGLE_DANCER="$DANCER" WAGGLE_DANCERS_DIR="$DANCERS_DIR" bash "$PROJ/lib/dispatcher.sh"
 echo "Done."

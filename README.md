@@ -1,58 +1,63 @@
 # Waggle
 
-A Claude Code hook that plays a short ASCII animation while Claude processes your prompt — so the response delay doesn't feel like a hang.
+A Claude Code hook that plays a short ASCII animation while Claude processes your prompt.
 
 ```
-  (> ^.^)>
+   (> ^.^)>
   <( ^.^ )>
   <(^.^ <)
 ```
 
-Waggle runs for about 9 seconds, then clears itself completely. It leaves no trace in the conversation and exits silently in headless environments.
+Waggle picks a dancer at random from your installed pool on each prompt. It clears itself completely when done and exits silently in headless environments.
 
 ## Install
 
-### Project level
+### Using the install command (recommended)
 
-Adds Waggle to one repo. Use `.claude/settings.local.json` to keep it personal (not committed), or `.claude/settings.json` to share it with your team.
+From within the waggle project in Claude Code:
 
-**1. Copy the script:**
+```
+/install-waggle             # installs waggle globally (default dancer, global scope)
+/install-waggle fish        # installs fish globally
+/install-waggle ~/myproject # installs waggle into a specific project
+/install-waggle fish ~/myproject
+```
+
+Install multiple dancers to build a pool — waggle picks one at random each prompt:
+
+```
+/install-waggle waggle
+/install-waggle ghost
+/install-waggle crab
+```
+
+### Manual install
+
+**1. Copy the dispatcher:**
 
 ```bash
-cp waggle.sh /path/to/your-project/.claude/hooks/waggle.sh
+# Global
+cp lib/dispatcher.sh ~/.claude/hooks/waggle.sh
+mkdir -p ~/.claude/hooks/waggle-dancers
+
+# Project-level
+cp lib/dispatcher.sh /path/to/your-project/.claude/hooks/waggle.sh
+mkdir -p /path/to/your-project/.claude/hooks/waggle-dancers
 ```
 
-**2. Add the hook to `.claude/settings.local.json` (or `.claude/settings.json`):**
-
-```json
-{
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/waggle.sh",
-            "timeout": 10
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-### Global level
-
-Adds Waggle to every project you open in Claude Code.
-
-**1. Copy the script:**
+**2. Copy one or more dancers into the pool:**
 
 ```bash
-cp waggle.sh ~/.claude/hooks/waggle.sh
+# Global
+cp dancers/waggle.sh ~/.claude/hooks/waggle-dancers/waggle.sh
+
+# Project-level
+cp dancers/waggle.sh /path/to/your-project/.claude/hooks/waggle-dancers/waggle.sh
 ```
 
-**2. Add the hook to `~/.claude/settings.json`:**
+**3. Add the hook to your settings file:**
+
+For global install (`~/.claude/settings.json`):
 
 ```json
 {
@@ -72,7 +77,51 @@ cp waggle.sh ~/.claude/hooks/waggle.sh
 }
 ```
 
+For project-level install (`.claude/settings.local.json` to keep it personal, or `.claude/settings.json` to share with your team):
+
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/waggle.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+## Uninstall
+
+```
+/uninstall-waggle             # removes everything globally
+/uninstall-waggle fish        # removes just the fish dancer globally
+/uninstall-waggle ~/myproject # removes everything from a specific project
+```
+
+## Available dancers
+
+| Name | Description |
+|------|-------------|
+| waggle | The original — arms out, arms in |
+| crab | Sideways shuffle |
+| fish | Swims right, turns around |
+| ghost | Spooky wiggle |
+| cheer | Exuberant arm-waving |
+| flower | Petals blooming side to side |
+| robot | Stiff geometric arm raises |
+| shades | Cool strut with music notes |
+| tableflip | Frustration and redemption |
+| tough | Flexing with a glare |
+
 ## Notes
 
 - If your `settings.json` already has a `UserPromptSubmit` section, add the waggle entry to the existing hooks array rather than creating a second `UserPromptSubmit` key.
 - Waggle detects headless environments (CI, background agents, no TTY) and exits immediately — safe to install globally.
+- Each animation runs for up to 9 seconds then clears itself. If Claude responds sooner, the hook is killed and the cleanup trap clears the terminal.
