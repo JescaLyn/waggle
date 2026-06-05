@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# description: Remove a dancer or the entire waggle hook. No dancer arg removes everything; scope defaults to global.
-# usage: /uninstall-waggle [<dancer>|<path>] [<path>]
+# description: Remove dancers or the entire waggle hook. No dancer arg removes everything; scope defaults to global.
+# usage: /uninstall-waggle [<dancer[,dancer,...]>|all|<path>] [<path>]
 set -euo pipefail
 
-DANCER=""
+DANCER_ARG=""
 RAW_TARGET=""
 if [[ "${1:-}" == */* || "${1:-}" == ~* ]]; then
   RAW_TARGET="$1"
 elif [ -n "${1:-}" ]; then
-  DANCER="$1"
+  DANCER_ARG="$1"
   RAW_TARGET="${2:-}"
 fi
 
@@ -38,7 +38,7 @@ remove_hook_entry() {
   echo "updated: $SETTINGS_FILE"
 }
 
-if [ -z "$DANCER" ]; then
+remove_all() {
   if [ -f "$DISPATCHER" ]; then
     rm "$DISPATCHER"; echo "removed: $DISPATCHER"
   else
@@ -48,17 +48,28 @@ if [ -z "$DANCER" ]; then
     rm -rf "$DANCERS_INSTALL_DIR"; echo "removed: $DANCERS_INSTALL_DIR"
   fi
   remove_hook_entry
-else
-  DANCER_FILE="$DANCERS_INSTALL_DIR/$DANCER.sh"
+}
+
+if [ -z "$DANCER_ARG" ] || [ "$DANCER_ARG" = "all" ]; then
+  remove_all
+  exit 0
+fi
+
+IFS=',' read -ra DANCERS <<< "$DANCER_ARG"
+
+for dancer in "${DANCERS[@]}"; do
+  DANCER_FILE="$DANCERS_INSTALL_DIR/$dancer.sh"
   if [ ! -f "$DANCER_FILE" ]; then
-    echo "not installed: $DANCER_FILE (skipped)"; exit 0
+    echo "not installed: $DANCER_FILE (skipped)"
+  else
+    rm "$DANCER_FILE"; echo "removed: $DANCER_FILE"
   fi
-  rm "$DANCER_FILE"; echo "removed: $DANCER_FILE"
-  remaining=("$DANCERS_INSTALL_DIR"/*.sh)
-  if [ ! -f "${remaining[0]}" ]; then
-    rm -f "$DISPATCHER"
-    rm -rf "$DANCERS_INSTALL_DIR"
-    echo "no dancers remain — removed dispatcher and pool"
-    remove_hook_entry
-  fi
+done
+
+remaining=("$DANCERS_INSTALL_DIR"/*.sh)
+if [ ! -f "${remaining[0]}" ]; then
+  rm -f "$DISPATCHER"
+  rm -rf "$DANCERS_INSTALL_DIR"
+  echo "no dancers remain — removed dispatcher and pool"
+  remove_hook_entry
 fi

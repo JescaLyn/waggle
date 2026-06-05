@@ -1,22 +1,35 @@
 #!/usr/bin/env bash
-# description: Install a dancer hook. Dancer defaults to waggle; scope defaults to global.
-# usage: /install-waggle [<dancer>|<path>] [<path>]
+# description: Install one or more dancer hooks. Dancer defaults to waggle; scope defaults to global.
+# usage: /install-waggle [<dancer[,dancer,...]>|all|<path>] [<path>]
 set -euo pipefail
 
 PROJ="${CLAUDE_PROJECT_DIR:-.}"
 DANCERS_DIR="$PROJ/dancers"
 DISPATCHER="$PROJ/lib/dispatcher.sh"
 
-DANCER="waggle"
+DANCER_ARG="waggle"
 RAW_TARGET=""
 if [[ "${1:-}" == */* || "${1:-}" == ~* ]]; then
   RAW_TARGET="$1"
 elif [ -n "${1:-}" ]; then
-  DANCER="$1"
+  DANCER_ARG="$1"
   RAW_TARGET="${2:-}"
 fi
 
-[ -f "$DANCERS_DIR/$DANCER.sh" ] || { echo "ERROR: dancer '$DANCER' not found" >&2; exit 1; }
+if [ "$DANCER_ARG" = "all" ]; then
+  DANCERS=()
+  for f in "$DANCERS_DIR"/*.sh; do
+    [ -f "$f" ] || continue
+    DANCERS+=("$(basename "$f" .sh)")
+  done
+  [ ${#DANCERS[@]} -eq 0 ] && { echo "ERROR: no dancers found in $DANCERS_DIR" >&2; exit 1; }
+else
+  IFS=',' read -ra DANCERS <<< "$DANCER_ARG"
+fi
+
+for dancer in "${DANCERS[@]}"; do
+  [ -f "$DANCERS_DIR/$dancer.sh" ] || { echo "ERROR: dancer '$dancer' not found" >&2; exit 1; }
+done
 
 case "$RAW_TARGET" in
   "")
@@ -40,8 +53,10 @@ echo "installed: $HOOKS_DIR/waggle.sh"
 
 DANCERS_INSTALL_DIR="$HOOKS_DIR/waggle-dancers"
 mkdir -p "$DANCERS_INSTALL_DIR"
-cp "$DANCERS_DIR/$DANCER.sh" "$DANCERS_INSTALL_DIR/$DANCER.sh"
-echo "installed: $DANCERS_INSTALL_DIR/$DANCER.sh"
+for dancer in "${DANCERS[@]}"; do
+  cp "$DANCERS_DIR/$dancer.sh" "$DANCERS_INSTALL_DIR/$dancer.sh"
+  echo "installed: $DANCERS_INSTALL_DIR/$dancer.sh"
+done
 
 if grep -q "waggle\\.sh" "$SETTINGS_FILE" 2>/dev/null; then
   echo "already configured: $SETTINGS_FILE (skipped)"

@@ -17,19 +17,16 @@ Waggle picks a dancer at random from your installed pool on each prompt. It clea
 From within the waggle project in Claude Code:
 
 ```
-/install-waggle             # installs waggle globally (default dancer, global scope)
-/install-waggle fish        # installs fish globally
-/install-waggle ~/myproject # installs waggle into a specific project
-/install-waggle fish ~/myproject
+/install-waggle                      # installs waggle globally (default dancer, global scope)
+/install-waggle fish                 # installs fish globally
+/install-waggle fish,ghost,crab      # installs a pool of three globally
+/install-waggle all                  # installs every dancer globally
+/install-waggle ~/myproject          # installs waggle into a specific project
+/install-waggle fish ~/myproject     # installs fish into a specific project
+/install-waggle all ~/myproject      # installs every dancer into a specific project
 ```
 
-Install multiple dancers to build a pool — waggle picks one at random each prompt:
-
-```
-/install-waggle waggle
-/install-waggle ghost
-/install-waggle crab
-```
+Install multiple dancers to build a pool — waggle picks one at random each prompt.
 
 ### Manual install
 
@@ -100,9 +97,12 @@ For project-level install (`.claude/settings.local.json` to keep it personal, or
 ## Uninstall
 
 ```
-/uninstall-waggle             # removes everything globally
-/uninstall-waggle fish        # removes just the fish dancer globally
-/uninstall-waggle ~/myproject # removes everything from a specific project
+/uninstall-waggle                    # removes everything globally
+/uninstall-waggle fish               # removes just fish globally
+/uninstall-waggle fish,ghost         # removes fish and ghost globally
+/uninstall-waggle all                # removes everything globally (same as no arg)
+/uninstall-waggle ~/myproject        # removes everything from a specific project
+/uninstall-waggle fish ~/myproject   # removes just fish from a specific project
 ```
 
 ## Available dancers
