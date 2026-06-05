@@ -1,14 +1,38 @@
 # Waggle
 
-A Claude Code hook that plays a short ASCII animation while Claude processes your prompt.
+A Claude Code hook that plays a short ASCII animation while Claude processes your prompt. You can install one or more dancers. If you have a pool of dancers, waggle picks one at random on each prompt.
 
 ```
-   (> ^.^)>
-  <( ^.^ )>
-  <(^.^ <)
+  waggle             ghost           robot
+  (> ^.^)>         ~( °o° )~       ┌[ □_□ ]┐
+ <( ^.^ )>         ~( °o° )        └[ □_□ ]┘
+ <(^.^ <)           ( °o° )~       ┌[ □_□ ]┘
 ```
 
-Waggle picks a dancer at random from your installed pool on each prompt. It clears itself completely when done and exits silently in headless environments.
+## Available dancers
+
+| Name | Preview |
+|------|---------|
+| waggle | `<( ^.^ )>` |
+| crab | `(\/)====( ° ω ° )====(\/)`|
+| fish | `<°)))><` |
+| ghost | `~( °o° )~` |
+| cheer | `╰( ^ᵕ^ )╯` |
+| flower | `✿( ^‿^ )✿` |
+| robot | `┌[ □_□ ]┐` |
+| shades | `ᕕ( ⌐■_■)ᕗ ♪♬` |
+| tableflip | `(╯ ˋ□ˊ)╯︵┻━┻` |
+| tough | `ᕦ( ò_ó )ᕤ` |
+
+## Demo
+
+From within the waggle project in Claude Code, use `/demo` to preview any dancer before installing:
+
+```
+/demo              # lists available dancers
+/demo waggle       # plays the waggle animation
+/demo ghost        # plays the ghost animation
+```
 
 ## Install
 
@@ -26,7 +50,16 @@ From within the waggle project in Claude Code:
 /install-waggle all ~/myproject      # installs every dancer into a specific project
 ```
 
-Install multiple dancers to build a pool — waggle picks one at random each prompt.
+### Uninstall
+
+```
+/uninstall-waggle                    # removes everything globally
+/uninstall-waggle fish               # removes just fish globally
+/uninstall-waggle fish,ghost         # removes fish and ghost globally
+/uninstall-waggle all                # removes everything globally (same as no arg)
+/uninstall-waggle ~/myproject        # removes everything from a specific project
+/uninstall-waggle fish ~/myproject   # removes just fish from a specific project
+```
 
 ### Manual install
 
@@ -94,34 +127,7 @@ For project-level install (`.claude/settings.local.json` to keep it personal, or
 }
 ```
 
-## Uninstall
-
-```
-/uninstall-waggle                    # removes everything globally
-/uninstall-waggle fish               # removes just fish globally
-/uninstall-waggle fish,ghost         # removes fish and ghost globally
-/uninstall-waggle all                # removes everything globally (same as no arg)
-/uninstall-waggle ~/myproject        # removes everything from a specific project
-/uninstall-waggle fish ~/myproject   # removes just fish from a specific project
-```
-
-## Available dancers
-
-| Name | Description |
-|------|-------------|
-| waggle | The original — arms out, arms in |
-| crab | Sideways shuffle |
-| fish | Swims right, turns around |
-| ghost | Spooky wiggle |
-| cheer | Exuberant arm-waving |
-| flower | Petals blooming side to side |
-| robot | Stiff geometric arm raises |
-| shades | Cool strut with music notes |
-| tableflip | Frustration and redemption |
-| tough | Flexing with a glare |
-
 ## Notes
 
-- If your `settings.json` already has a `UserPromptSubmit` section, add the waggle entry to the existing hooks array rather than creating a second `UserPromptSubmit` key.
 - Waggle detects headless environments (CI, background agents, no TTY) and exits immediately — safe to install globally.
 - The animation loops until Claude responds or the 10s hook timeout fires. The cleanup trap clears the terminal either way.
