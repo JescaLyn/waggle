@@ -6,3 +6,6 @@
 
 # iCloud sync temps (.!<pid>!<filename>)
 .!*
+
+# personal settings
+.claude/settings.local.json
