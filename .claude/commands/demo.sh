@@ -24,5 +24,5 @@ if [ ! -f "$DANCERS_DIR/$DANCER.sh" ]; then
 fi
 
 echo "Watch the terminal input line..."
-WAGGLE_DANCER="$DANCER" WAGGLE_DANCERS_DIR="$DANCERS_DIR" bash "$PROJ/lib/dispatcher.sh"
+WAGGLE_DANCER="$DANCER" WAGGLE_DANCERS_DIR="$DANCERS_DIR" WAGGLE_MAX_CYCLES=2 bash "$PROJ/lib/dispatcher.sh"
 echo "Done."

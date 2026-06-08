@@ -4,8 +4,12 @@
 # If the user types /foo, looks for foo.sh in the project-local commands dir first,
 # then falls back to ~/.claude/commands/foo.sh. Runs the script and outputs
 # JSON {decision:block} to suppress inference. All other prompts exit 0 and pass through.
+#
+# Installed to ~/.claude/hooks/dispatch-commands.sh by install.sh.
 
 set -euo pipefail
+
+cd "$HOME"  # python3 needs an accessible CWD to import modules
 
 _PROJ="${CLAUDE_PROJECT_DIR:-}"
 COMMAND_DIR="${CLAUDE_COMMANDS_DIR:-${_PROJ:+$_PROJ/.claude/commands}}"
@@ -55,11 +59,11 @@ fi
 # and cannot be suppressed.
 python3 -c "
 import json, sys
-cmd, output = sys.argv[1], sys.argv[2].rstrip('\n')
+label, output = sys.argv[1], sys.argv[2].rstrip('\n')
 lines = output.split('\n')
 prefix = '╭─ /'
-W = max(len(prefix) + len(cmd) + 3, max((len(l) for l in lines), default=0) + 3, 40)
-header = prefix + cmd + ' ' + '─' * (W - len(prefix) - len(cmd) - 1)
+W = max(len(prefix) + len(label) + 3, max((len(l) for l in lines), default=0) + 3, 40)
+header = prefix + label + ' ' + '─' * (W - len(prefix) - len(label) - 1)
 body   = '│\n' + '\n'.join('│ ' + l for l in lines)
 footer = '╰' + '─' * (W - 1)
 reason = '\n'.join(['\n' + header, body, footer])
@@ -68,5 +72,5 @@ print(json.dumps({
     'reason': reason,
     'hookSpecificOutput': {'hookEventName': 'UserPromptSubmit', 'suppressOriginalPrompt': True},
 }))
-" "$COMMAND" "$REASON"
+" "${COMMAND}${ARGS:+ $ARGS}" "$REASON"
 exit 0
