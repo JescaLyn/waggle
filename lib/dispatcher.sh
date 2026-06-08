@@ -10,8 +10,12 @@ for _ in 1 2 3 4 5; do
 done
 { [ -z "$TERM_DEV" ] || [ ! -w "$TERM_DEV" ]; } && exit 0
 
-cleanup() { printf '\r\033[K' > "$TERM_DEV" 2>/dev/null; }
-trap cleanup EXIT
+_MONITOR_PID=""
+cleanup() {
+  [ -n "$_MONITOR_PID" ] && kill "$_MONITOR_PID" 2>/dev/null
+  printf '\r\033[K' > "$TERM_DEV" 2>/dev/null
+}
+trap cleanup EXIT TERM
 
 DANCERS_DIR="${WAGGLE_DANCERS_DIR:-$(cd "$(dirname "$0")" && pwd)/waggle-dancers}"
 [ -d "$DANCERS_DIR" ] || exit 0
@@ -30,6 +34,25 @@ fi
 source "$dancer_file"
 sleep_dur="${sleep_dur:-0.75}"
 [ "${#frames[@]}" -eq 0 ] && exit 0
+
+if command -v python3 >/dev/null 2>&1; then
+  python3 -c '
+import os, select, signal, sys
+signal.signal(signal.SIGTTIN, signal.SIG_IGN)
+term_dev, disp_pid = sys.argv[1], int(sys.argv[2])
+try:
+    fd = os.open(term_dev, os.O_RDONLY | os.O_NONBLOCK)
+    try:
+        while not select.select([fd], [], [], 0.05)[0]:
+            pass
+        os.kill(disp_pid, signal.SIGTERM)
+    finally:
+        os.close(fd)
+except Exception:
+    pass
+' "$TERM_DEV" "$$" &
+  _MONITOR_PID=$!
+fi
 
 cycles=0
 max_cycles="${WAGGLE_MAX_CYCLES:-}"

@@ -5,7 +5,7 @@
 # then falls back to ~/.claude/commands/foo.sh. Runs the script and outputs
 # JSON {decision:block} to suppress inference. All other prompts exit 0 and pass through.
 #
-# Installed to ~/.claude/hooks/dispatch-commands.sh by install.sh.
+# Installed to ~/.claude/hooks/dispatch-commands.sh via /install-waggle.
 
 set -euo pipefail
 
