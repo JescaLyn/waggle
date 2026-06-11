@@ -1,4 +1,17 @@
 #!/bin/bash
+_SESSION_ID=""
+if command -v python3 >/dev/null 2>&1; then
+  _SESSION_ID=$(python3 -c "
+import sys, json, os
+try:
+    if not os.isatty(sys.stdin.fileno()):
+        d = json.load(sys.stdin)
+        print(d.get('session_id', ''))
+except Exception:
+    pass
+" 2>/dev/null)
+fi
+
 TERM_DEV=""
 PID=$$
 for _ in 1 2 3 4 5; do
@@ -28,7 +41,18 @@ if [ -n "${WAGGLE_DANCER:-}" ]; then
   [ -f "$dancer_file" ] || exit 0
 else
   count=${#files[@]}
-  dancer_file="${files[$((RANDOM % count))]}"
+  if [ -n "$_SESSION_ID" ]; then
+    _state_file="/tmp/waggle-first-${_SESSION_ID}"
+    if [ ! -f "$_state_file" ]; then
+      touch "$_state_file"
+      dancer_file="$DANCERS_DIR/waggle.sh"
+      [ -f "$dancer_file" ] || dancer_file="${files[$((RANDOM % count))]}"
+    else
+      dancer_file="${files[$((RANDOM % count))]}"
+    fi
+  else
+    dancer_file="${files[$((RANDOM % count))]}"
+  fi
 fi
 
 source "$dancer_file"
