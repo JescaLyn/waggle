@@ -59,6 +59,9 @@ source "$dancer_file"
 sleep_dur="${sleep_dur:-0.75}"
 [ "${#frames[@]}" -eq 0 ] && exit 0
 
+_LABEL_SEQ=""
+[ -n "${WAGGLE_LABEL:-}" ] && _LABEL_SEQ=$'\033[35G'"$WAGGLE_LABEL"
+
 if command -v python3 >/dev/null 2>&1; then
   python3 -c '
 import os, select, signal, sys
@@ -82,7 +85,7 @@ cycles=0
 max_cycles="${WAGGLE_MAX_CYCLES:-}"
 while true; do
   for frame in "${frames[@]}"; do
-    printf '\033[?2026h\0337\r       %s\033[K\0338\033[?2026l' "$frame" > "$TERM_DEV"
+    printf '\033[?2026h\0337\r       %s\033[K%s\0338\033[?2026l' "$frame" "$_LABEL_SEQ" > "$TERM_DEV"
     sleep "$sleep_dur"
   done
   cycles=$((cycles + 1))
