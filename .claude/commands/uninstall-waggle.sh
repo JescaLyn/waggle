@@ -5,7 +5,7 @@ set -euo pipefail
 
 DANCER_ARG=""
 RAW_TARGET=""
-if [[ "${1:-}" == */* || "${1:-}" == ~* ]]; then
+if [[ "${1:-}" == "." || "${1:-}" == */* || "${1:-}" == ~* ]]; then
   RAW_TARGET="$1"
 elif [ -n "${1:-}" ]; then
   DANCER_ARG="$1"
@@ -25,25 +25,28 @@ case "$RAW_TARGET" in
     ;;
 esac
 
-DISPATCHER="$HOOKS_DIR/waggle.sh"
 DANCERS_INSTALL_DIR="$HOOKS_DIR/waggle-dancers"
 
 remove_hook_entry() {
-  grep -q "waggle\\.sh" "$SETTINGS_FILE" 2>/dev/null || { echo "not configured: $SETTINGS_FILE (skipped)"; return; }
+  grep -q "waggle" "$SETTINGS_FILE" 2>/dev/null || { echo "not configured: $SETTINGS_FILE (skipped)"; return; }
   command -v jq >/dev/null 2>&1 || { echo "ERROR: jq is required — install with: brew install jq" >&2; exit 1; }
   TMP=$(mktemp)
   trap 'rm -f "$TMP"' EXIT
-  jq '.hooks.UserPromptSubmit = [(.hooks.UserPromptSubmit // [])[] | select((.hooks // []) | map(.command // "") | map(test("waggle\\.sh")) | any | not)]' \
-    "$SETTINGS_FILE" > "$TMP" && mv "$TMP" "$SETTINGS_FILE"
+  jq '
+    .hooks.UserPromptSubmit = [(.hooks.UserPromptSubmit // [])[] | select((.hooks // []) | map(.command // "") | map(test("waggle")) | any | not)] |
+    .hooks.Stop = [(.hooks.Stop // [])[] | select((.hooks // []) | map(.command // "") | map(test("waggle")) | any | not)]
+  ' "$SETTINGS_FILE" > "$TMP" && mv "$TMP" "$SETTINGS_FILE"
   echo "updated: $SETTINGS_FILE"
 }
 
 remove_all() {
-  if [ -f "$DISPATCHER" ]; then
-    rm "$DISPATCHER"; echo "removed: $DISPATCHER"
-  else
-    echo "not installed: $DISPATCHER (skipped)"
-  fi
+  for f in waggle.sh waggle-start.sh waggle-stop.sh; do
+    if [ -f "$HOOKS_DIR/$f" ]; then
+      rm "$HOOKS_DIR/$f"; echo "removed: $HOOKS_DIR/$f"
+    else
+      echo "not installed: $HOOKS_DIR/$f (skipped)"
+    fi
+  done
   if [ -d "$DANCERS_INSTALL_DIR" ]; then
     rm -rf "$DANCERS_INSTALL_DIR"; echo "removed: $DANCERS_INSTALL_DIR"
   fi
@@ -68,8 +71,8 @@ done
 
 remaining=("$DANCERS_INSTALL_DIR"/*.sh)
 if [ ! -f "${remaining[0]}" ]; then
-  rm -f "$DISPATCHER"
+  rm -f "$HOOKS_DIR/waggle.sh" "$HOOKS_DIR/waggle-start.sh" "$HOOKS_DIR/waggle-stop.sh"
   rm -rf "$DANCERS_INSTALL_DIR"
-  echo "no dancers remain — removed dispatcher and pool"
+  echo "no dancers remain — removed all waggle hooks and pool"
   remove_hook_entry
 fi
