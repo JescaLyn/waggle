@@ -63,31 +63,35 @@ From within the waggle project in Claude Code:
 
 ### Manual install
 
-**1. Copy the dispatcher:**
+**1. Copy the hook scripts and dispatcher:**
 
 ```bash
 # Global
+mkdir -p ~/.claude/hooks
+cp lib/waggle-start.sh lib/waggle-stop.sh ~/.claude/hooks/
 cp lib/dispatcher.sh ~/.claude/hooks/waggle.sh
 mkdir -p ~/.claude/hooks/waggle-dancers
 
 # Project-level
-cp lib/dispatcher.sh /path/to/your-project/.claude/hooks/waggle.sh
-mkdir -p /path/to/your-project/.claude/hooks/waggle-dancers
+mkdir -p /path/to/project/.claude/hooks
+cp lib/waggle-start.sh lib/waggle-stop.sh /path/to/project/.claude/hooks/
+cp lib/dispatcher.sh /path/to/project/.claude/hooks/waggle.sh
+mkdir -p /path/to/project/.claude/hooks/waggle-dancers
 ```
 
 **2. Copy one or more dancers into the pool:**
 
 ```bash
 # Global
-cp dancers/waggle.sh ~/.claude/hooks/waggle-dancers/waggle.sh
+cp dancers/waggle.sh ~/.claude/hooks/waggle-dancers/
 
 # Project-level
-cp dancers/waggle.sh /path/to/your-project/.claude/hooks/waggle-dancers/waggle.sh
+cp dancers/waggle.sh /path/to/project/.claude/hooks/waggle-dancers/
 ```
 
-**3. Add the hook to your settings file:**
+**3. Add the hooks to your settings file:**
 
-For global install (`~/.claude/settings.json`):
+For global install, add to `~/.claude/settings.json`. For project-level, add to `.claude/settings.local.json` (personal) or `.claude/settings.json` (shared with team). Adjust paths to match:
 
 ```json
 {
@@ -97,28 +101,40 @@ For global install (`~/.claude/settings.json`):
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/hooks/waggle.sh",
-            "timeout": 10
+            "command": "bash ~/.claude/hooks/waggle-start.sh",
+            "timeout": 5
           }
         ]
       }
-    ]
-  }
-}
-```
-
-For project-level install (`.claude/settings.local.json` to keep it personal, or `.claude/settings.json` to share with your team):
-
-```json
-{
-  "hooks": {
-    "UserPromptSubmit": [
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/waggle-stop.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/waggle.sh",
-            "timeout": 10
+            "command": "bash ~/.claude/hooks/waggle-start.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/waggle-stop.sh"
           }
         ]
       }
@@ -129,5 +145,6 @@ For project-level install (`.claude/settings.local.json` to keep it personal, or
 
 ## Notes
 
-- Waggle detects headless environments (CI, background agents, no TTY) and exits immediately — safe to install globally.
-- The animation loops until Claude responds or the 10s hook timeout fires. The cleanup trap clears the terminal either way.
+- Waggle detects headless environments (CI, background agents, no TTY) and exits immediately, so it is safe to install globally.
+- The animation persists across Claude's full turn. It starts on prompt submit, pauses before user input prompts, resumes after tool use, and stops when Claude finishes. A keypress monitor also stops the animation if you start typing mid-turn.
+- A 600-second safety deadline ensures the animation never runs indefinitely.
