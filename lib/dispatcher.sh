@@ -19,8 +19,10 @@ fi
 { [ -z "$TERM_DEV" ] || [ ! -w "$TERM_DEV" ]; } && exit 0
 
 _MONITOR_PID=""
+_SLEEP_PID=""
 cleanup() {
   [ -n "$_MONITOR_PID" ] && kill "$_MONITOR_PID" 2>/dev/null
+  [ -n "$_SLEEP_PID" ] && kill "$_SLEEP_PID" 2>/dev/null
   printf '\r\033[K' > "$TERM_DEV" 2>/dev/null
   [ -n "${WAGGLE_PID_FILE:-}" ] && rm -f "$WAGGLE_PID_FILE" 2>/dev/null
 }
@@ -84,7 +86,10 @@ _deadline=$(( SECONDS + 600 ))
 while true; do
   for frame in "${frames[@]}"; do
     printf '\033[?2026h\0337\r       %s\033[K%s\0338\033[?2026l' "$frame" "$_LABEL_SEQ" > "$TERM_DEV"
-    sleep "$sleep_dur"
+    # Background sleep + wait so traps run immediately instead of after sleep exits.
+    sleep "$sleep_dur" &
+    _SLEEP_PID=$!
+    wait "$_SLEEP_PID" 2>/dev/null
   done
   cycles=$((cycles + 1))
   [ -n "$max_cycles" ] && [ "$cycles" -ge "$max_cycles" ] && break
