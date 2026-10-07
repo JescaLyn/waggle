@@ -14,7 +14,29 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/waggle-start.sh",
+            "command": "WAGGLE_DANCERS_DIR=\"${CLAUDE_PROJECT_DIR}/dancers\" bash \"${CLAUDE_PROJECT_DIR}/lib/waggle-start.sh\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/lib/waggle-stop.sh\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "WAGGLE_DANCERS_DIR=\"${CLAUDE_PROJECT_DIR}/dancers\" bash \"${CLAUDE_PROJECT_DIR}/lib/waggle-start.sh\"",
             "timeout": 5
           }
         ]
@@ -25,7 +47,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/waggle-stop.sh"
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/lib/waggle-stop.sh\""
           }
         ]
       }

@@ -80,16 +80,20 @@ command -v jq >/dev/null 2>&1 || { echo "ERROR: jq is required — install with:
 
 START_ENTRY=$(jq -n --arg cmd "$START_CMD" '{hooks: [{type: "command", command: $cmd, timeout: 5}]}')
 STOP_ENTRY=$(jq -n --arg cmd "$STOP_CMD" '{hooks: [{type: "command", command: $cmd}]}')
+PAUSE_ENTRY=$(jq -n --arg cmd "$STOP_CMD" '{matcher: "AskUserQuestion", hooks: [{type: "command", command: $cmd}]}')
+RESUME_ENTRY="$START_ENTRY"
 
 if [ ! -f "$SETTINGS_FILE" ]; then
-  jq -n --argjson s "$START_ENTRY" --argjson t "$STOP_ENTRY" \
-    '{"hooks": {"UserPromptSubmit": [$s], "Stop": [$t]}}' > "$SETTINGS_FILE"
+  jq -n --argjson s "$START_ENTRY" --argjson t "$STOP_ENTRY" --argjson p "$PAUSE_ENTRY" --argjson r "$RESUME_ENTRY" \
+    '{"hooks": {"UserPromptSubmit": [$s], "PreToolUse": [$p], "PostToolUse": [$r], "Stop": [$t]}}' > "$SETTINGS_FILE"
   echo "created: $SETTINGS_FILE"
 else
   TMP=$(mktemp)
   trap 'rm -f "$TMP"' EXIT
-  jq --argjson s "$START_ENTRY" --argjson t "$STOP_ENTRY" \
+  jq --argjson s "$START_ENTRY" --argjson t "$STOP_ENTRY" --argjson p "$PAUSE_ENTRY" --argjson r "$RESUME_ENTRY" \
     '.hooks.UserPromptSubmit = ((.hooks.UserPromptSubmit // []) + [$s]) |
+     .hooks.PreToolUse = ((.hooks.PreToolUse // []) + [$p]) |
+     .hooks.PostToolUse = ((.hooks.PostToolUse // []) + [$r]) |
      .hooks.Stop = ((.hooks.Stop // []) + [$t])' \
     "$SETTINGS_FILE" > "$TMP" && mv "$TMP" "$SETTINGS_FILE"
   echo "updated: $SETTINGS_FILE"

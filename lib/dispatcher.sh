@@ -18,7 +18,9 @@ else
 fi
 { [ -z "$TERM_DEV" ] || [ ! -w "$TERM_DEV" ]; } && exit 0
 
+_MONITOR_PID=""
 cleanup() {
+  [ -n "$_MONITOR_PID" ] && kill "$_MONITOR_PID" 2>/dev/null
   printf '\r\033[K' > "$TERM_DEV" 2>/dev/null
   [ -n "${WAGGLE_PID_FILE:-}" ] && rm -f "$WAGGLE_PID_FILE" 2>/dev/null
 }
@@ -56,6 +58,25 @@ sleep_dur="${sleep_dur:-0.75}"
 
 _LABEL_SEQ=""
 [ -n "${WAGGLE_LABEL:-}" ] && _LABEL_SEQ=$'\033[35G'"$WAGGLE_LABEL"
+
+if command -v python3 >/dev/null 2>&1; then
+  python3 -c '
+import os, select, signal, sys
+signal.signal(signal.SIGTTIN, signal.SIG_IGN)
+term_dev, disp_pid = sys.argv[1], int(sys.argv[2])
+try:
+    fd = os.open(term_dev, os.O_RDONLY | os.O_NONBLOCK)
+    try:
+        while not select.select([fd], [], [], 0.05)[0]:
+            pass
+        os.kill(disp_pid, signal.SIGTERM)
+    finally:
+        os.close(fd)
+except Exception:
+    pass
+' "$TERM_DEV" "$$" &
+  _MONITOR_PID=$!
+fi
 
 cycles=0
 max_cycles="${WAGGLE_MAX_CYCLES:-}"

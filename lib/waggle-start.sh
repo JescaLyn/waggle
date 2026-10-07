@@ -1,7 +1,7 @@
 #!/bin/bash
-# UserPromptSubmit hook: starts the waggle animation as a background process and exits
-# immediately so Claude can begin processing. The Stop hook (waggle-stop.sh) kills the
-# animation when Claude finishes responding.
+# UserPromptSubmit/PostToolUse hook: starts the waggle animation as a background process
+# and exits immediately so Claude can begin processing. No-op if already running.
+# waggle-stop.sh kills the animation when Claude finishes or asks a question.
 
 HOOKS_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -30,6 +30,14 @@ done
 { [ -z "$TERM_DEV" ] || [ ! -w "$TERM_DEV" ]; } && exit 0
 
 PID_FILE="/tmp/waggle-${_SESSION_ID:-$$}.pid"
+
+# Skip if animation is already running
+if [ -f "$PID_FILE" ]; then
+  _EXISTING=$(cat "$PID_FILE" 2>/dev/null)
+  if [ -n "$_EXISTING" ] && kill -0 "$_EXISTING" 2>/dev/null; then
+    exit 0
+  fi
+fi
 
 # Prefer waggle.sh (installed copy) but fall back to dispatcher.sh (running from source)
 if [ -f "$HOOKS_DIR/waggle.sh" ]; then

@@ -22,6 +22,13 @@ _kill_pid_file() {
   rm -f "$pid_file" 2>/dev/null || true
   [ -z "$_PID" ] && return
   kill "$_PID" 2>/dev/null || true
+  # Wait for the dispatcher's cleanup trap to finish so it doesn't race
+  # with whatever renders next (e.g. AskUserQuestion UI).
+  local _i=0
+  while kill -0 "$_PID" 2>/dev/null && [ "$_i" -lt 10 ]; do
+    sleep 0.05
+    _i=$((_i + 1))
+  done
 }
 
 if [ -n "$_SESSION_ID" ]; then

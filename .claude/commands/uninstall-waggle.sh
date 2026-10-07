@@ -34,6 +34,8 @@ remove_hook_entry() {
   trap 'rm -f "$TMP"' EXIT
   jq '
     .hooks.UserPromptSubmit = [(.hooks.UserPromptSubmit // [])[] | select((.hooks // []) | map(.command // "") | map(test("waggle")) | any | not)] |
+    .hooks.PreToolUse = [(.hooks.PreToolUse // [])[] | select((.hooks // []) | map(.command // "") | map(test("waggle")) | any | not)] |
+    .hooks.PostToolUse = [(.hooks.PostToolUse // [])[] | select((.hooks // []) | map(.command // "") | map(test("waggle")) | any | not)] |
     .hooks.Stop = [(.hooks.Stop // [])[] | select((.hooks // []) | map(.command // "") | map(test("waggle")) | any | not)]
   ' "$SETTINGS_FILE" > "$TMP" && mv "$TMP" "$SETTINGS_FILE"
   echo "updated: $SETTINGS_FILE"
